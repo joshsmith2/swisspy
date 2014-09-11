@@ -1,4 +1,5 @@
-# A series of useful python functions, written for Hogarth by Josh Smith in 2014
+#!/usr/bin/env python2.7
+"""A series of useful python functions, written by Josh Smith in 2014"""
 
 import datetime
 import hashlib
@@ -9,8 +10,9 @@ from subprocess import PIPE
 import shutil
 
 def check_pid(pid):
-    """Check whether the process with the given pid is running. Return True or
-    False accordingly"""
+    """Check whether the process with pid is running. Return True or False.
+
+    Note - currently does not work with Windows"""
     try:
         os.kill(int(pid), 0) #Sends a harmless signal to the proc
     except OSError as e:
@@ -22,9 +24,9 @@ def check_pid(pid):
         return True
 
 def get_md5(from_file, chunk_size=8192):
-    """Returns an MD5 hash of from_file, processing the file in chunks of chunk_size"""
-    #Read file in 8192 byte chunks
-    f=open(from_file, 'rb')
+    """Returns an MD5 hash of from_file, processing the file in chunks of
+    chunk_size - by default this is 8192 bytes"""
+    f = open(from_file, 'rb')
     hash_out = hashlib.md5()
     while True:
         chunk = f.read(chunk_size)
@@ -35,14 +37,16 @@ def get_md5(from_file, chunk_size=8192):
     f.close()
     return hash_out.hexdigest()
 
-class FileNotOnSource(Exception):
-    pass
-
 def careful_delete(folder, files_to_remove):
-    """Check that nothing important is within folder, then remove it.
+    """Check that nothing 'important' is within folder, then remove it.
 
-    :param folder: Full path to candidate for removal.
-    :param files_to_remove: Files which should be removed from the folder.
+    folder : string
+        Full path to candidate for removal.
+    files_to_remove : list : strings
+        A list of Files which should be removed from the folder.
+
+    NOTE: This is unix specific, since it uses rmdir and find. OS agnostic
+    version under development
     """
 
     dir_rm = sp.call(['rmdir', folder], stderr=sp.PIPE)
@@ -67,106 +71,39 @@ def careful_delete(folder, files_to_remove):
         if delete_it:
             sp.call(['rm', '-r', folder])
 
-def moveFile(source_file_path, source_dir, dest, mode='copy', create_dirs=True):
-    """Used to move a file within source_dir  to a similar directory on dest; 
-    will copy single files across while preserving directory structure. 
-    
-    moveFile(/source/a/b/thefile.txt, b/thefile.txt, /dest/)
-    will attempt to copy thefile.txt to /dest/b/thefile.txt, and create the 
-    directory on b if it doesn't exist. 
+def back_one(path):
+    """Return the directory one step deeper than path
 
-    file_path: str (path)
-        Full path to the file to be moved
-    source_dir: str (path)
-        The section of the path containing directories to be created on the     
-        dest. 
-    dest: str (path)
-        The destination. Files will be created at dest/source_dir.
-    mode: str - default = 'copy'
-        'move' - Move the files and delete them from source
-        'copy' - copy the files.
-    create_dirs: bool
-        Create dirs in source_dir which don't exist in dest"""
-
-    def back_one(path):
-        return '/'.join(path.split('/')[:-1])
-
-    def create_dirs(source_dir):
-        
-        dir_array = source_dir.split('/')
-
-        for i in range(1, len(dir_array)):
-            #...keep moving one dir back and trying to create it.
-            try:
-                dir_to_create = '/'.join(dir_array[:len(dir_array)-i])
-                os.mkdir(dir_to_create)
-                
-                #Success! No exception! Make the other folders. 
-                for j in range(i+1,len(dir_array)):
-                    os.mkdir('/'.join(dir_array[:i]))
-                continue
-
-            #If we couldn't make the dir and there's still some to try, keep
-            #trying. otherwise, raise an exception.
-            except OSError:
-                if i == len(dir_array):
-                    raise OSError("Could not create file " +\
-                                  os.path.join(dest,dir_to_create))
-                else:
-                    pass
-        
-    source_file_path = os.path.abspath(source_file_path)
-    dest_file_path = os.path.abspath(os.path.join(dest,source_dir))
-
-    if not os.path.exists(source_file_path):
-        raise FileNotOnSource(source_file_path)
-
-    if mode == 'copy':
-        while True:
-            try:
-                shutil.copy(source_file_path, dest_file_path)
-            #If transfer fails due to unfound path on dest...
-            except IOError:
-                create_dirs(source_dir)
+    >>> back_one("/tmp/pindle/Cranston")
+    '/tmp/pindle'
+    """
+    return '/'.join(path.split('/')[:-1])
 
 
-    if mode == '':
-        while True:
-            try:
-                shutil.copy(source_file_path, dest_file_path)
-            #If transfer fails due to unfound path on dest...
-            except IOError:
-                for i in range(len(source_dir.split('/'))-1):
-                    #...keep moving one dir back and trying to create it.
-                    try:
-                        dir_to_create = back_one(source_dir)
-                        os.mkdir(dir_to_create)
-                        #If it works, try moving the file again.
-                        continue
-                    except OSError:
-                        pass
+def escape_char(from_str,char):
+    """Append any instance of char in from_str with a backslash
 
-def escapeChar(fromStr,char):
-    """Append any instance of char in from_str with a backslash"""
-    return(fromStr.replace(char,'\\' + char))
+    >>> escape_char("brickly manhang", "a")
+    'brickly m\anh\ang'
+    """
+    return(from_str.replace(char,'\\' + char))
 
 def appendIndex(filename, ext, path):
-    """Append an index to a path.
+    """Append an index to a path, ensuring the indexed filename is unique
+    within its parent directory.
 
-    Given a file 'filename' at location 'path' with extension 'ext', 
-    this will return the path of filename(n)ext, where n is the lowest integer for 
-    which filename(n-1)ext already exitsts.
+    Given a file 'filename' at location 'path' with extension 'ext',
+    this will return the path of filename(n)ext, where n is the lowest integer
+    for which filename(n-1)ext already exists.
     
-    As an example, given a directory /tmp/adir conatining a.txt and a(1).txt,
+    As an example, given a directory /tmp/adir containing a.txt and a(1).txt,
     appendIndex('a','.txt','/tmp/adir') will return a(2).txt
 
-    Variables:
-    
-    filename: STR
+    filename : str
         The name of the file
-    ext: STR
+    ext : str
         The file's extension
-    path: STR
+    path : str
         A path to the directory the file resides in. 
     """
 
