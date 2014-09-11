@@ -88,7 +88,7 @@ def escape_char(from_str,char):
     """
     return(from_str.replace(char,'\\' + char))
 
-def appendIndex(filename, ext, path):
+def append_index(filename, ext, path):
     """Append an index to a path, ensuring the indexed filename is unique
     within its parent directory.
 
@@ -108,107 +108,95 @@ def appendIndex(filename, ext, path):
     """
 
     index = 1
-
-    appendedFile = filename + "(" + str(index) + ")" + ext
-    appendedPath = os.path.join(path, appendedFile)
-
-    while os.path.exists(appendedPath):
-
+    appended_file = "{}({}){}".format(filename, str(index), ext)
+    appended_path = os.path.join(path, appended_file)
+    while os.path.exists(appended_path):
         index += 1
-        appendedFile = filename + "(" + str(index) + ")" + ext
-        appendedPath = os.path.join(path, appendedFile)
+        appended_file = "{}({}){}".format(filename, str(index), ext)
+        appended_path = os.path.join(path, appended_file)
+    return appended_path
 
-    return appendedPath
+def dir_being_written_to(path):
+    """Uses lsof to get access tags on all files in path. Return true if
+    any file is being written to.
 
-
-def dirBeingWrittenTo(path):
-    """Uses lsof to get access tags on all files in path
-
-    Returns true if any file is being written to.
-
+    NOTE: This uses lsof, so is Unix dependent
     """
-    lsofOut = sp.Popen(["lsof", "+D", path, "-F", "a"],
-                                stdout=PIPE, stderr=PIPE)
-    lsofStdout = lsofOut.communicate()[0].split()
-    
-    for accessType in lsofStdout:
-        if 'w' in accessType:
+    lsof_out = sp.Popen(["lsof", "+D", path, "-F", "a"],
+                        stdout=PIPE, stderr=PIPE)
+    lsof_stdout = lsof_out.communicate()[0].split()
+    for access_type in lsof_stdout:
+        if 'w' in access_type:
             return True
-    
     #If nothing is writing to a file, or there are no files in path:
     return False
 
-def immediateSubdirs(theDir):
-    """Returns a list of immediate subdirectories of theDir"""
-
-    return [name for name in os.listdir(theDir)
-        if os.path.isdir(os.path.join(theDir,name))]
-
+def immediate_subdirs(the_dir):
+    """Returns a list of immediate subdirectories of the_dir"""
+    return [name for name in os.listdir(the_dir)
+            if os.path.isdir(os.path.join(the_dir,name))]
 
 def prepend(pre, post):
-    """If 'pre' is defined, append it to post, concatenate and return"""
-    if pre != None:
-        return pre + post
+    """If pre is defined, append it to post, concatenate and return
 
+    >>> prepend("dis", "co")
+    'disco'
+    >>> prepend(None, "buttress")
+    'buttress'
+    """
+    if pre != None:
+        return "{}{}".format(pre, post)
     else:
         return post
 
-def printAndLog(toPrint, logFiles=[], syslogFiles=[], ts='long', quiet=False):
-    """Prints toPrint to stdOut and also to all files in logFiles. 
-
+def print_and_log(to_print, log_files=[], syslog_files=[], ts='long', quiet=False):
+    """Prints to_print to stdout and also to all files in log_files.
     If ts is passed, will print the time of the log.
 
-    Variables:
-     
-    toPrint: STR
+    to_print : str
         The string to be logged.
-    logFiles: LIST of FILES
+    log_files : list : files
         A list of files to be logged to. Should be open file objects.
-    sysLogFiles: LIST of FILES
-        Files in this list will have any \n newline characters replaced with \r
-        This should be used for any file being monitored by rsyslog or similar.
-    ts: STR - 'long' or 'short - default short
+    syslog_files : list : files
+        A list of alternative log files to write to. Soon to be deprecated.
+    ts : str
+        'long' or 'short - default: short
         The type of timestamp to be appended to the file
-        See docs for timeStamp
-    quiet: BOOL - default False
+        See docs for time_stamp
+    quiet : bool
+        default: False
         Print to stdout if false.
     """
-
     if ts:
-        ts = str(timeStamp(ts))
-        toPrint = ts + " " + toPrint
-
+        ts = str(log_files(ts))
+        to_print = "{} {}".format(ts, to_print)
     if not quiet:
-        print toPrint
-    for f in logFiles:
-        f.write(toPrint)
-    for f in syslogFiles:
-        f.write(toPrint)
+        print to_print
+    for f in log_files:
+        f.write(to_print)
+    for f in syslog_files:
+        f.write(to_print)
 
-def timeStamp(form='long'):
+def time_stamp(form='long'):
     """Prints the current time in a one of two formats. Useful for logging. 
 
-    ts can take values 'long' or 'short'. Examples:
+    form can take values 'long' or 'short'. Examples:
     
-    >>> hogpy.timeStamp('long')
+    hogpy.timeStamp('long')
     2014-03-10 15:00:02 :
     
-    >>> hogpy.timeStamp('short')
+    hogpy.timeStamp('short')
     0310-1500    
 
     """
-
     ts = time.time()
-
     if form == 'short':
         return datetime.datetime.fromtimestamp(ts).strftime('%m%d-%H%M')
-
     if form == 'long':
         return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d '+\
                                                             '%H:%M:%S') + " :"
 
-
-def unescape(fromStr):
-    """Removes backslashes used to escape characters"""
-    return fromStr.replace('\\','')
+def unescape(from_str):
+    """Remove backslashes used to escape characters"""
+    return from_str.replace('\\','')
 
