@@ -7,7 +7,8 @@ import os
 import time
 import subprocess as sp
 from subprocess import PIPE
-import shutil
+import platform
+import sys
 
 def append_index(filename, ext, path):
     """Append an index to a path, ensuring the indexed filename is unique
@@ -48,16 +49,23 @@ def careful_delete(folder, files_to_remove):
     NOTE: This is unix specific, since it uses rmdir and find. OS agnostic
     version under development
     """
-
-    dir_rm = sp.call(['rmdir', folder], stderr=sp.PIPE)
+    try:
+        dir_rm = sp.call(['rmdir', folder], stderr=sp.PIPE)
+    except OSError:
+        print prog_not_found_msg('rmdir')
+        raise
 
     #Unless...
     if dir_rm > 0:
 
         #Hmm. Well, it's probably just empty dirs and .DS_Stores, right?
         delete_it = True
-
-        find_files = sp.Popen(['find', folder, '-type', 'f'], stdout=sp.PIPE).communicate()
+        try:
+            find_files = sp.Popen(['find', folder, '-type', 'f'],
+                                  stdout=sp.PIPE).communicate()
+        except OSError:
+            print prog_not_found_msg('find')
+            raise
         files_present = find_files[0].strip().split('\n')
         #If there are any files in subdirectories of dirname...
         if files_present[0]:
@@ -69,13 +77,17 @@ def careful_delete(folder, files_to_remove):
                     delete_it = False
 
         if delete_it:
-            sp.call(['rm', '-r', folder])
-
+            try:
+                sp.call(['rm', '-r', folder])
+            except OSError:
+                print prog_not_found_msg('rm')
+                raise
 
 def check_pid(pid):
     """Check whether the process with pid is running. Return True or False.
 
     Note - currently does not work with Windows"""
+    exit_on_platform("Windows")
     try:
         os.kill(int(pid), 0) #Sends a harmless signal to the proc
     except OSError as e:
@@ -96,9 +108,7 @@ def dir_being_written_to(path):
         lsof_out = sp.Popen(["lsof", "+D", path, "-F", "a"],
                              stdout=PIPE, stderr=PIPE)
     except OSError:
-        import sys
-        print "Error: the program 'lsof' could not be found. This function "\
-              "does not yet work on Windows"
+        print prog_not_found_msg('lsof')
         sys.exit(1)
     lsof_stdout = lsof_out.communicate()[0].split()
     for access_type in lsof_stdout:
@@ -114,6 +124,12 @@ def escape_char(from_str,char):
     'brickly m\\anh\\ang'
     """
     return(from_str.replace(char,'\\' + char))
+
+def exit_on_platform(p, exit_code=1):
+    """Exit from the script with exit_code if you're running on platform"""
+    if platform.system() == platform:
+        print "Error: This function does not work on {} (yet)".format(platform)
+        sys.exit(exit_code)
 
 def get_md5(from_file, chunk_size=8192):
     """Returns an MD5 hash of from_file, processing the file in chunks of
@@ -179,6 +195,14 @@ def print_and_log(to_print, log_files=[], syslog_files=[],
         f.write(to_print)
     for f in syslog_files:
         f.write(to_print)
+
+def prog_not_found_msg(prog):
+    """Returns a string explaining prog could not be found.
+
+    TODO: Do away with this entirely (everything should be platform agnostic
+    as far as possible)"""
+    return "The program {p} could not be found. Please ensure you " \
+           "are running this from an OS with {p} installed".format(p=prog)
 
 def time_stamp(form='long'):
     """Prints the current time in a one of two formats. Useful for logging. 
