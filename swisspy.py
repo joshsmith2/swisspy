@@ -203,4 +203,4 @@ def unescape(from_str):
 
 def get_mod_time(a_file):
     """Return the last modification time of a_file"""
-   return time.ctime(os.path.getmtime(a_file))
+    return time.ctime(os.path.getmtime(a_file))
