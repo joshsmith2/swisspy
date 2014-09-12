@@ -9,33 +9,33 @@ import subprocess as sp
 from subprocess import PIPE
 import shutil
 
-def check_pid(pid):
-    """Check whether the process with pid is running. Return True or False.
+def append_index(filename, ext, path):
+    """Append an index to a path, ensuring the indexed filename is unique
+    within its parent directory.
 
-    Note - currently does not work with Windows"""
-    try:
-        os.kill(int(pid), 0) #Sends a harmless signal to the proc
-    except OSError as e:
-        if e.args[0] == 3:
-            return False
-        else:
-            raise
-    else:
-        return True
+    Given a file 'filename' at location 'path' with extension 'ext',
+    this will return the path of filename(n)ext, where n is the lowest integer
+    for which filename(n-1)ext already exists.
 
-def get_md5(from_file, chunk_size=8192):
-    """Returns an MD5 hash of from_file, processing the file in chunks of
-    chunk_size - by default this is 8192 bytes"""
-    f = open(from_file, 'rb')
-    hash_out = hashlib.md5()
-    while True:
-        chunk = f.read(chunk_size)
-        if chunk == '':
-            break
-        else:
-            hash_out.update(chunk)
-    f.close()
-    return hash_out.hexdigest()
+    As an example, given a directory /tmp/adir containing a.txt and a(1).txt,
+    appendIndex('a','.txt','/tmp/adir') will return a(2).txt
+
+    filename : str
+        The name of the file
+    ext : str
+        The file's extension
+    path : str
+        A path to the directory the file resides in.
+    """
+
+    index = 1
+    appended_file = "{}({}){}".format(filename, str(index), ext)
+    appended_path = os.path.join(path, appended_file)
+    while os.path.exists(appended_path):
+        index += 1
+        appended_file = "{}({}){}".format(filename, str(index), ext)
+        appended_path = os.path.join(path, appended_file)
+    return appended_path
 
 def careful_delete(folder, files_to_remove):
     """Check that nothing 'important' is within folder, then remove it.
@@ -71,41 +71,20 @@ def careful_delete(folder, files_to_remove):
         if delete_it:
             sp.call(['rm', '-r', folder])
 
-def escape_char(from_str,char):
-    r"""Append any instance of char in from_str with a backslash
 
-    >>> escape_char("brickly manhang", "a")
-    'brickly m\\anh\\ang'
-    """
-    return(from_str.replace(char,'\\' + char))
+def check_pid(pid):
+    """Check whether the process with pid is running. Return True or False.
 
-def append_index(filename, ext, path):
-    """Append an index to a path, ensuring the indexed filename is unique
-    within its parent directory.
-
-    Given a file 'filename' at location 'path' with extension 'ext',
-    this will return the path of filename(n)ext, where n is the lowest integer
-    for which filename(n-1)ext already exists.
-    
-    As an example, given a directory /tmp/adir containing a.txt and a(1).txt,
-    appendIndex('a','.txt','/tmp/adir') will return a(2).txt
-
-    filename : str
-        The name of the file
-    ext : str
-        The file's extension
-    path : str
-        A path to the directory the file resides in. 
-    """
-
-    index = 1
-    appended_file = "{}({}){}".format(filename, str(index), ext)
-    appended_path = os.path.join(path, appended_file)
-    while os.path.exists(appended_path):
-        index += 1
-        appended_file = "{}({}){}".format(filename, str(index), ext)
-        appended_path = os.path.join(path, appended_file)
-    return appended_path
+    Note - currently does not work with Windows"""
+    try:
+        os.kill(int(pid), 0) #Sends a harmless signal to the proc
+    except OSError as e:
+        if e.args[0] == 3:
+            return False
+        else:
+            raise
+    else:
+        return True
 
 def dir_being_written_to(path):
     """Uses lsof to get access tags on all files in path. Return true if
@@ -121,6 +100,32 @@ def dir_being_written_to(path):
             return True
     #If nothing is writing to a file, or there are no files in path:
     return False
+
+def escape_char(from_str,char):
+    r"""Append any instance of char in from_str with a backslash
+
+    >>> escape_char("brickly manhang", "a")
+    'brickly m\\anh\\ang'
+    """
+    return(from_str.replace(char,'\\' + char))
+
+def get_md5(from_file, chunk_size=8192):
+    """Returns an MD5 hash of from_file, processing the file in chunks of
+    chunk_size - by default this is 8192 bytes"""
+    f = open(from_file, 'rb')
+    hash_out = hashlib.md5()
+    while True:
+        chunk = f.read(chunk_size)
+        if chunk == '':
+            break
+        else:
+            hash_out.update(chunk)
+    f.close()
+    return hash_out.hexdigest()
+
+def get_mod_time(a_file):
+    """Return the last modification time of a_file"""
+    return time.ctime(os.path.getmtime(a_file))
 
 def immediate_subdirs(the_dir):
     """Returns a list of immediate subdirectories of the_dir"""
@@ -191,10 +196,6 @@ def time_stamp(form='long'):
 def unescape(from_str):
     """Remove backslashes used to escape characters"""
     return from_str.replace('\\','')
-
-def get_mod_time(a_file):
-    """Return the last modification time of a_file"""
-    return time.ctime(os.path.getmtime(a_file))
 
 if __name__ == '__main__':
     import doctest
