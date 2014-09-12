@@ -149,7 +149,8 @@ def prepend(pre, post):
     else:
         return post
 
-def print_and_log(to_print, log_files=[], syslog_files=[], ts='long', quiet=False):
+def print_and_log(to_print, log_files=[], syslog_files=[],
+                  timestamp='long', quiet=False):
     """Prints to_print to stdout and also to all files in log_files.
     If ts is passed, will print the time of the log.
 
@@ -167,9 +168,9 @@ def print_and_log(to_print, log_files=[], syslog_files=[], ts='long', quiet=Fals
         default: False
         Print to stdout if false.
     """
-    if ts:
-        ts = str(log_files(ts))
-        to_print = "{} {}".format(ts, to_print)
+    if timestamp:
+        timestamp = str(time_stamp(timestamp))
+        to_print = "{} {}".format(timestamp, to_print)
     if not quiet:
         print to_print
     for f in log_files:
