@@ -71,15 +71,6 @@ def careful_delete(folder, files_to_remove):
         if delete_it:
             sp.call(['rm', '-r', folder])
 
-def back_one(path):
-    """Return the directory one step deeper than path
-
-    >>> back_one("/tmp/pindle/Cranston")
-    '/tmp/pindle'
-    """
-    return '/'.join(path.split('/')[:-1])
-
-
 def escape_char(from_str,char):
     r"""Append any instance of char in from_str with a backslash
 
