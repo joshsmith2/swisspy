@@ -92,8 +92,14 @@ def dir_being_written_to(path):
 
     NOTE: This uses lsof, so is Unix dependent
     """
-    lsof_out = sp.Popen(["lsof", "+D", path, "-F", "a"],
-                        stdout=PIPE, stderr=PIPE)
+    try:
+        lsof_out = sp.Popen(["lsof", "+D", path, "-F", "a"],
+                             stdout=PIPE, stderr=PIPE)
+    except OSError:
+        import sys
+        print "Error: the program 'lsof' could not be found. This function "\
+              "does not yet work on Windows"
+        sys.exit(1)
     lsof_stdout = lsof_out.communicate()[0].split()
     for access_type in lsof_stdout:
         if 'w' in access_type:
