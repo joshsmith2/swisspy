@@ -81,10 +81,10 @@ def back_one(path):
 
 
 def escape_char(from_str,char):
-    """Append any instance of char in from_str with a backslash
+    r"""Append any instance of char in from_str with a backslash
 
     >>> escape_char("brickly manhang", "a")
-    'brickly m\anh\ang'
+    'brickly m\\anh\\ang'
     """
     return(from_str.replace(char,'\\' + char))
 
@@ -204,3 +204,7 @@ def unescape(from_str):
 def get_mod_time(a_file):
     """Return the last modification time of a_file"""
     return time.ctime(os.path.getmtime(a_file))
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
