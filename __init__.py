@@ -1,1 +1,1 @@
-from hogpy import *
+from swisspy import *
