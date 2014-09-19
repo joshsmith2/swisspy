@@ -2,12 +2,14 @@
 """A series of useful python functions, written by Josh Smith in 2014"""
 
 import datetime
+from filecmp import dircmp
 import hashlib
+import inspect
 import os
 import time
+import platform
 import subprocess as sp
 from subprocess import PIPE
-import platform
 import sys
 
 def append_index(filename, ext, path):
@@ -117,6 +119,22 @@ def dir_being_written_to(path):
     #If nothing is writing to a file, or there are no files in path:
     return False
 
+def dirs_match(dir_a,dir_b):
+    """Checks whether directories a and b differ in structure or content
+
+    >>> dirs_match('/tmp','/tmp')
+    True
+
+    >>> dirs_match('/tmp', '/opt')
+    False
+
+    """
+    comparison = dircmp(dir_a, dir_b)
+    if comparison.left_only or comparison.right_only:
+        return False
+    else:
+        return True
+
 def escape_char(from_str,char):
     r"""Append any instance of char in from_str with a backslash
 
@@ -130,6 +148,13 @@ def exit_on_platform(p, exit_code=1):
     if platform.system() == platform:
         print "Error: This function does not work on {} (yet)".format(platform)
         sys.exit(exit_code)
+
+def get_dir_currently_running_in():
+    """Returns a full path to the directory this script is being run from.
+    """
+    current_running_path = os.path.abspath(inspect.stack()[0][1])
+    current_running_dir = os.path.dirname(current_running_path)
+    return current_running_dir
 
 def get_md5(from_file, chunk_size=8192):
     """Returns an MD5 hash of from_file, processing the file in chunks of
@@ -195,6 +220,15 @@ def print_and_log(to_print, log_files=[], syslog_files=[],
         f.write(to_print)
     for f in syslog_files:
         f.write(to_print)
+
+def smooth_join(*args):
+    """
+    Join any number of paths together properly
+    """
+    out_path = ""
+    for arg in args:
+        out_path = os.path.join(out_path, arg)
+    return os.path.abspath(out_path)
 
 def prog_not_found_msg(prog):
     """Returns a string explaining prog could not be found.
