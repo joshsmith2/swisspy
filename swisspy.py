@@ -119,7 +119,7 @@ def dir_being_written_to(path):
     #If nothing is writing to a file, or there are no files in path:
     return False
 
-def dirs_match(dir_a,dir_b):
+def dirs_match(dir_a, dir_b, ignore=['.DS_Store']):
     """Checks whether directories a and b differ in structure or content
 
     >>> dirs_match('/tmp','/tmp')
@@ -129,7 +129,7 @@ def dirs_match(dir_a,dir_b):
     False
 
     """
-    comparison = dircmp(dir_a, dir_b)
+    comparison = dircmp(dir_a, dir_b, ignore=ignore)
     if comparison.left_only or comparison.right_only:
         return False
     else:
