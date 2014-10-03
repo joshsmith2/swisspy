@@ -199,9 +199,9 @@ def print_and_log(to_print, log_files=[], syslog_files=[],
 
     to_print : str
         The string to be logged.
-    log_files : list : files
-        A list of files to be logged to. Should be open file objects.
-    syslog_files : list : files
+    log_files : list : paths
+        A list of paths to be logged to. Should be open file objects.
+    syslog_files : list : paths
         A list of alternative log files to write to. Soon to be deprecated.
     ts : str
         'long' or 'short - default: short
@@ -217,9 +217,11 @@ def print_and_log(to_print, log_files=[], syslog_files=[],
     if not quiet:
         print to_print
     for f in log_files:
-        f.write(to_print)
+        with open(f, 'a') as file_:
+            file_.write(to_print)
     for f in syslog_files:
-        f.write(to_print)
+        with open(f, 'a') as file_:
+            file_.write(to_print)
 
 def smooth_join(*args):
     """
