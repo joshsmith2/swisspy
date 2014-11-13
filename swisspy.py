@@ -179,6 +179,12 @@ def immediate_subdirs(the_dir):
     return [name for name in os.listdir(the_dir)
             if os.path.isdir(os.path.join(the_dir,name))]
 
+def make_file(location, name, content="CONTENT-AAAH"):
+    """Make a small dummy file at the given location"""
+    path = os.path.join(os.path.abspath(location), name)
+    with open(path, 'w') as the_file:
+        the_file.write(content)
+
 def prepend(pre, post):
     """If pre is defined, append it to post, concatenate and return
 
@@ -223,6 +229,14 @@ def print_and_log(to_print, log_files=[], syslog_files=[],
         with open(f, 'a') as file_:
             file_.write(to_print)
 
+def prog_not_found_msg(prog):
+    """Returns a string explaining prog could not be found.
+
+    TODO: Do away with this entirely (everything should be platform agnostic
+    as far as possible)"""
+    return "The program {p} could not be found. Please ensure you " \
+           "are running this from an OS with {p} installed".format(p=prog)
+
 def smooth_join(*args):
     """
     Join any number of paths together properly
@@ -232,13 +246,6 @@ def smooth_join(*args):
         out_path = os.path.join(out_path, arg)
     return os.path.abspath(out_path)
 
-def prog_not_found_msg(prog):
-    """Returns a string explaining prog could not be found.
-
-    TODO: Do away with this entirely (everything should be platform agnostic
-    as far as possible)"""
-    return "The program {p} could not be found. Please ensure you " \
-           "are running this from an OS with {p} installed".format(p=prog)
 
 def time_stamp(form='long'):
     """Prints the current time in a one of two formats. Useful for logging. 
