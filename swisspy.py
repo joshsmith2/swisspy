@@ -32,11 +32,11 @@ def append_index(filename, ext, path):
     """
 
     index = 1
-    appended_file = "{}({}){}".format(filename, str(index), ext)
+    appended_file = "{0}({1}){2}".format(filename, str(index), ext)
     appended_path = os.path.join(path, appended_file)
     while os.path.exists(appended_path):
         index += 1
-        appended_file = "{}({}){}".format(filename, str(index), ext)
+        appended_file = "{0}({1}){2}".format(filename, str(index), ext)
         appended_path = os.path.join(path, appended_file)
     return appended_path
 
@@ -146,7 +146,7 @@ def escape_char(from_str,char):
 def exit_on_platform(p, exit_code=1):
     """Exit from the script with exit_code if you're running on platform"""
     if platform.system() == platform:
-        print "Error: This function does not work on {} (yet)".format(platform)
+        print "Error: This function does not work on {0} (yet)".format(platform)
         sys.exit(exit_code)
 
 def get_dir_currently_running_in():
@@ -194,7 +194,7 @@ def prepend(pre, post):
     'buttress'
     """
     if pre != None:
-        return "{}{}".format(pre, post)
+        return "{0}{1}".format(pre, post)
     else:
         return post
 
@@ -219,7 +219,7 @@ def print_and_log(to_print, log_files=[], syslog_files=[],
     """
     if ts:
         ts = str(time_stamp(ts))
-        to_print = "{} {}".format(ts, to_print)
+        to_print = "{0} {1}".format(ts, to_print)
     if not quiet:
         print to_print
     for f in log_files:
