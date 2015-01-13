@@ -246,7 +246,6 @@ def smooth_join(*args):
         out_path = os.path.join(out_path, arg)
     return os.path.abspath(out_path)
 
-
 def time_stamp(form='long'):
     """Prints the current time in a one of two formats. Useful for logging. 
 
