@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python2
 """A series of useful python functions, written by Josh Smith in 2014"""
 
 import datetime
